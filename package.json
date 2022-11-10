@@ -9,9 +9,13 @@
     "start": "next start"
   },
   "dependencies": {
+    "@rainbow-me/rainbowkit": "^0.7.4",
+    "ethers": "^5.7.2",
+    "firebase": "^9.13.0",
     "next": "13.0.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "wagmi": "^0.8.1",
     "zod": "^3.18.0"
   },
   "devDependencies": {
