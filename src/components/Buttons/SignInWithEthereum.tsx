@@ -2,20 +2,21 @@ import { NextPage } from "next";
 import Button from "@/components/Buttons";
 import { useAuth } from "@/context/auth";
 import { useSignMessage } from "wagmi";
+import axios from "axios"
 
 const SignInWithEthereum: NextPage = () => {
-  const { signIn, refreshNonce } = useAuth();
+  const { doSiwe, signIn } = useAuth();
   const { signMessageAsync } = useSignMessage();
 
   const handleSiwe = async () => {
-    const siwe = await signIn();
+    const siwe = await doSiwe();
     if (!siwe) return;
 
     const signature = await signMessageAsync({
       message: siwe.prepareMessage(),
     });
 
-    await refreshNonce();
+    await signIn(signature, siwe);
   };
 
   return (

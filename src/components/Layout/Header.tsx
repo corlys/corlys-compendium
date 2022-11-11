@@ -3,17 +3,20 @@ import { NextPage } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { useAccount } from "wagmi";
-import { useEffect } from "react";
 
 import SignInWithEthereum from "@/components/Buttons/SignInWithEthereum";
+import LogoutButton from "@/components/Buttons/Logout";
 import { useIsMounted } from "@/hooks/index";
+import { useAuth } from "@/context/auth";
+import { useEffect } from "react";
 
 const Header: NextPage = () => {
   const { address, isConnected, status } = useAccount();
+  const { authState } = useAuth();
   const { mounted } = useIsMounted();
-  useEffect(() => {
-    console.log("zap ", isConnected);
-  }, [isConnected]);
+  // useEffect(() => {
+  //   console.log('zap authState', authState.loggedInAddress)
+  // }, [authState])
   return (
     <>
       <header className="sticky inset-x-0 top-0 w-full px-2 py-4 backdrop-blur-sm">
@@ -26,7 +29,14 @@ const Header: NextPage = () => {
             <Link href={"/"}>Home</Link>
             <Link href={"/blog"}>Blog</Link>
           </div>
-          {mounted && isConnected ? <SignInWithEthereum /> : <ConnectButton />}
+          {mounted && isConnected ? (
+            <div>
+              {authState.loggedInAddress === address && <LogoutButton />}
+              {authState.loggedInAddress === null && <SignInWithEthereum />}
+            </div>
+          ) : (
+            <ConnectButton />
+          )}
         </div>
       </header>
     </>

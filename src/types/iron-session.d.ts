@@ -5,5 +5,7 @@ declare module "iron-session" {
   interface IronSessionData {
     nonce?: string;
     siwe?: SiweMessage;
+    customToken?: string;
+    expireDate?: number;
   }
 }

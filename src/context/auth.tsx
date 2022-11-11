@@ -10,10 +10,14 @@ import axios from "axios";
 import { useAccount, useNetwork } from "wagmi";
 import { SiweMessage } from "siwe";
 
+type AuthState = {
+  loggedInAddress: string | null;
+};
+
 const useAuthController = () => {
-  const [authState, setAuthState] = useState<
-    "loading" | "authenticated" | "unauthenticated" | null
-  >(null);
+  const [authState, setAuthState] = useState<AuthState>({
+    loggedInAddress: null,
+  });
   const { address, status, isConnected } = useAccount();
   const { chain } = useNetwork();
 
@@ -30,7 +34,7 @@ const useAuthController = () => {
     }
   };
 
-  const signIn = async () => {
+  const doSiwe = async () => {
     try {
       const {
         data: { nonce },
@@ -41,7 +45,8 @@ const useAuthController = () => {
       const message = new SiweMessage({
         domain: window.location.host,
         address,
-        statement: "SiwE HOHOHO",
+        statement: "God Forgives",
+        uri: window.location.origin,
         version: "1",
         chainId: chain ? chain.id : 0,
         nonce,
@@ -53,22 +58,52 @@ const useAuthController = () => {
     }
   };
 
-  const signOut = async (token: string) => {
-    await axios.post("/api/auth/signout", { token });
+  const signIn = async (signature: string, message: SiweMessage) => {
+    try {
+      await axios.post("/api/auth/verify", {
+        signature,
+        message,
+        accountAddress: address,
+      });
+      if (address)
+        setAuthState((old) => ({
+          ...old,
+          loggedInAddress: address.toString(),
+        }));
+      return true;
+    } catch (error) {
+      console.log(error);
+      return false;
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      await axios.post("/api/auth/logout");
+      setAuthState((old) => ({ ...old, loggedInAddress: null }));
+    } catch (error) {
+      console.log("zap error", error);
+    }
   };
 
   useEffect(() => {
-    if (isConnected) {
-      // should mean changing account
-      // sign them out
-    }
-  }, [address]);
+    const handleAuth = async () => {
+      try {
+        const { data } = await axios.get<{ auth: { id: string } }>(
+          "/api/auth/me"
+        );
+        setAuthState((old) => ({ ...old, loggedInAddress: data.auth.id }));
+      } catch (error) {}
+    };
+    handleAuth();
+  }, []);
 
   return {
     authState,
     signOut,
+    doSiwe,
     signIn,
-    refreshNonce
+    refreshNonce,
   };
 };
 
