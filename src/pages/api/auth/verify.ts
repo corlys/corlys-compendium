@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { firebaseAdminApp } from "@/config/firebase-config";
+import { firebaseAdminApp, firebaseAuth } from "@/config/firebase-config";
+import { signInWithCustomToken } from "firebase/auth";
 import { withIronSessionApiRoute } from "iron-session/next";
 import { SiweMessage } from "siwe";
 import { ironOptions } from "@/config/cookie-config";
@@ -34,12 +35,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const firebasetoken = await firebaseAdminApp
       .auth()
       .createCustomToken(fields.address);
+
+    const { user } = await signInWithCustomToken(firebaseAuth, firebasetoken);
+    req.session.jwtToken = await user.getIdTokenResult();
     req.session.customToken = firebasetoken;
     req.session.expireDate = new Date().getTime() + 30 * 60000; //add 30 minutes
     req.session.siwe = fields;
     await req.session.save();
 
-    console.log(req.session);
+    // console.log(req.session);
 
     return res.status(200).json({ message: "OK" });
   } catch (error) {

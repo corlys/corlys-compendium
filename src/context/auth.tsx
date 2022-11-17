@@ -2,13 +2,14 @@ import {
   useContext,
   createContext,
   useState,
-  FC,
   useEffect,
   ReactNode,
 } from "react";
 import axios from "axios";
 import { useAccount, useNetwork } from "wagmi";
 import { SiweMessage } from "siwe";
+import { useIsMounted } from "@/hooks/index";
+import { useRouter } from "next/router";
 
 type AuthState = {
   loggedInAddress: string | null;
@@ -20,6 +21,8 @@ const useAuthController = () => {
   });
   const { address, status, isConnected } = useAccount();
   const { chain } = useNetwork();
+  const { mounted } = useIsMounted();
+  const router = useRouter();
 
   const refreshNonce = async () => {
     try {
@@ -81,6 +84,7 @@ const useAuthController = () => {
     try {
       await axios.post("/api/auth/logout");
       setAuthState((old) => ({ ...old, loggedInAddress: null }));
+      router.push("/");
     } catch (error) {
       console.log("zap error", error);
     }
@@ -89,14 +93,34 @@ const useAuthController = () => {
   useEffect(() => {
     const handleAuth = async () => {
       try {
-        const { data } = await axios.get<{ auth: { id: string } }>(
-          "/api/auth/me"
-        );
-        setAuthState((old) => ({ ...old, loggedInAddress: data.auth.id }));
+        const { data } = await axios.get<{
+          auth: { id: string; expired: boolean };
+        }>("/api/auth/me");
+        if (data.auth.expired) {
+          await signOut();
+        } else {
+          setAuthState((old) => ({ ...old, loggedInAddress: data.auth.id }));
+        }
       } catch (error) {}
     };
     handleAuth();
   }, []);
+
+  useEffect(() => {
+    const handleChangeAccount = async () => {
+      if (mounted) {
+        if (isConnected) {
+          if (
+            authState.loggedInAddress &&
+            authState.loggedInAddress !== address
+          ) {
+            await signOut();
+          }
+        }
+      }
+    };
+    handleChangeAccount();
+  }, [address, mounted, isConnected]);
 
   return {
     authState,

@@ -10,9 +10,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!req.session.customToken || !req.session.siwe)
       return res.status(400).json({ error: "not logged in" });
 
+    let expired = false;
+
+    // possibly check if  jwt expired, if it does then log them out
+    if (
+      new Date(req.session.jwtToken?.expirationTime ?? "").getTime() <=
+      new Date().getTime()
+    ) {
+      expired = true;
+    }
     return res.status(200).json({
       auth: {
         id: req.session.siwe.address,
+        expired,
       },
     });
   } catch (error) {
