@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { ironOptions } from "@/config/cookie-config";
 import { withIronSessionApiRoute } from "iron-session/next";
 import { firebaseFirestore } from "@/config/firebase-config";
-import { setDoc, doc } from "firebase/firestore";
+import { setDoc, doc, serverTimestamp } from "firebase/firestore";
 import { stringToSlug } from "@/helpers/index";
 
 type createReqBody = {
@@ -30,16 +30,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         title,
         content,
         author: doc(firebaseFirestore, "users/" + author),
+        created_at: serverTimestamp(),
+        updated_at: serverTimestamp(),
       }
     );
 
     return res.status(200).json({
       message: "ok",
     });
-  } catch (error) {
-    console.log(error)
+  } catch (error: any) {
     return res.status(500).json({
       error: "something's wrong",
+      message: error?.message
     });
   }
 }

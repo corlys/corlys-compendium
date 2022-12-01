@@ -1,8 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import {
-  firebaseFirestore,
-  firebaseAdminApp,
-} from "@/config/firebase-config";
+import { firebaseFirestore, firebaseAdminApp } from "@/config/firebase-config";
 import { withIronSessionApiRoute } from "iron-session/next";
 import { ironOptions } from "@/config/cookie-config";
 import {
@@ -11,6 +8,8 @@ import {
   DocumentData,
   DocumentReference,
   getDoc,
+  orderBy,
+  query,
 } from "firebase/firestore";
 
 interface IPost {
@@ -38,7 +37,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         error: "not logged in",
       });
 
-    const querySnapshot = await getDocs(collection(firebaseFirestore, "posts"));
+    const q = query(
+      collection(firebaseFirestore, "posts"),
+      orderBy("created_at", 'desc')
+    );
+    const querySnapshot = await getDocs(q);
     const result: IPost[] = [];
     const fsIterator: DocumentData[] = [];
     querySnapshot.forEach((doc) => {
