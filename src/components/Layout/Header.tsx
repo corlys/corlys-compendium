@@ -17,7 +17,7 @@ const Header: NextPage = () => {
   const { mounted } = useIsMounted();
 
   const isMobile = useMediaQuery({
-    query: "(max-width: 412px)",
+    query: "(max-width: 414px)",
   });
 
   return (
