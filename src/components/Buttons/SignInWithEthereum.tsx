@@ -23,7 +23,7 @@ const SignInWithEthereum: NextPage = () => {
     <>
       <Button onClickFunction={handleSiwe}>
         <div className="text-center text-sm font-medium text-white ">
-          Sign In with Ethereum
+          SIWΞ
         </div>
       </Button>
     </>
