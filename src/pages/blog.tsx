@@ -69,7 +69,7 @@ const Blog: NextPage<AuthProps> = ({ loggedAddress }) => {
                   key={key}
                 >
                   <h1 className="text-2xl md:text-[2rem]">{item.title}</h1>
-                  <div>{item.content}</div>
+                  <div className="whitespace-pre-wrap">{item.content}</div>
                   <div className="self-end">By {truncateAddress(item.author)}</div>
                 </div>
               </>

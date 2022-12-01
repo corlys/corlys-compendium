@@ -34,6 +34,8 @@ const Create: NextPage = () => {
     });
   };
 
+  console.log("zap content", watch("content"))
+
   return (
     <>
       <div className="container mx-auto flex flex-col items-center justify-center">
