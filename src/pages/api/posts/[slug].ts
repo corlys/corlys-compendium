@@ -10,17 +10,17 @@ import {
   getDoc,
   orderBy,
   query,
+  doc,
 } from "firebase/firestore";
+import lodash from "lodash";
 
 interface IPost {
   content: string;
   title: string;
   author: string;
-  slug: string;
 }
 
 interface FirestorePostResp {
-  id: string;
   content: string;
   title: string;
   author: DocumentReference<DocumentData>;
@@ -39,24 +39,36 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         error: "not logged in",
       });
 
-    const q = query(
-      collection(firebaseFirestore, "posts"),
-      orderBy("created_at", "desc")
-    );
-    const querySnapshot = await getDocs(q);
-    const result: IPost[] = [];
-    const fsIterator: DocumentData[] = [];
-    querySnapshot.forEach((doc) => {
-      fsIterator.push(doc);
-    });
-    for (const doc of fsIterator) {
-      const data = doc.data() as FirestorePostResp;
+    const { slug } = req.query;
+    if (!slug)
+      return res.status(400).json({
+        error: "input wrong",
+      });
+
+    const stringifySlug = lodash.isArray(slug) ? slug[0] || "" : slug;
+
+    const docRef = doc(firebaseFirestore, "posts", stringifySlug);
+
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      const data = docSnap.data() as FirestorePostResp;
+
       const author = await getDoc(data.author);
       if (author.exists()) {
-        result.push({ ...data, author: author.id, slug: doc.id });
+        const result: IPost = {
+          ...data,
+          author: author.id,
+        };
+        return res.status(200).json({ result });
       }
+    } else {
+      // doc.data() will be undefined in this case
+      console.log("No such document!");
+      return res.status(400).json({
+        error: "no document found",
+      });
     }
-    return res.status(200).json({ result });
   } catch (error: any) {
     if (error?.code === "auth/argument-error") {
       return res.status(400).json({
