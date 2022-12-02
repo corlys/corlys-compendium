@@ -4,16 +4,17 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { withIronSessionSsr } from "iron-session/next";
 import { ironOptions } from "@/config/cookie-config";
+import { useRouter } from "next/router";
 import { truncateAddress } from "@/helpers/index";
 
-interface IPosts {
+interface IPost {
   author: string;
   content: string;
   title: string;
 }
 
 interface IPostsResponse {
-  result: IPosts[];
+  result: IPost;
 }
 
 interface AuthProps {
@@ -21,21 +22,25 @@ interface AuthProps {
 }
 
 const Blog: NextPage<AuthProps> = ({ loggedAddress }) => {
+  const router = useRouter();
+  const { slug } = router.query;
   const { authState } = useAuth();
 
   const { data } = useQuery<IPostsResponse, Error>(
-    ["posts"],
-    () => fetchPosts(),
+    ["posts", slug],
+    () => fetchPost(slug),
     {
-      enabled: !!authState.loggedInAddress,
+      enabled: !!authState.loggedInAddress && !!slug,
     }
   );
 
-  const fetchPosts = async (): Promise<IPostsResponse> => {
+  const fetchPost = async (
+    slug: string | string[] | undefined
+  ): Promise<IPostsResponse> => {
     try {
-      if (!authState.loggedInAddress) throw new Error("Input not yet ready");
-      const getPosts = await axios.get<IPostsResponse>("/api/posts");
-      console.log(getPosts.data, "zap");
+      if (!authState.loggedInAddress || !slug)
+        throw new Error("Input not yet ready");
+      const getPosts = await axios.get<IPostsResponse>(`/api/posts/${slug}`);
       return getPosts.data;
     } catch (error) {
       throw new Error("Network response not ok");
@@ -47,7 +52,7 @@ const Blog: NextPage<AuthProps> = ({ loggedAddress }) => {
       <div className="container mx-auto flex flex-col items-center justify-center gap-4">
         {/* Heading Blog, welcome username */}
         <h1 className="text-2xl text-gray-700">
-          Welcome{" "}
+          By{" "}
           <span className="text-purple-300">
             {truncateAddress(loggedAddress)}
           </span>
@@ -57,24 +62,12 @@ const Blog: NextPage<AuthProps> = ({ loggedAddress }) => {
             <div className="w-full border-b border-gray-300"></div>
           </div>
           <div className="relative flex justify-center">
-            <span className="bg-white px-4 text-sm text-gray-500">Posts</span>
+            <span className="bg-white px-4 text-sm text-gray-500">Post</span>
           </div>
         </div>
-        {data &&
-          data.result.map((item, key) => {
-            return (
-              <>
-                <div
-                  className="flex w-full max-w-[52rem] flex-col items-start justify-between gap-4 overflow-hidden rounded border-2 border-cyan-900 p-8"
-                  key={key}
-                >
-                  <h1 className="text-2xl md:text-[2rem]">{item.title}</h1>
-                  <div>{item.content}</div>
-                  <div className="self-end">By {truncateAddress(item.author)}</div>
-                </div>
-              </>
-            );
-          })}
+        {data && (
+          <div className="whitespace-pre-wrap">{data.result.content}</div>
+        )}
       </div>
     </>
   );

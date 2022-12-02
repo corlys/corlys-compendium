@@ -5,6 +5,7 @@ import SubmitForm from "@/components/Buttons/SubmitForm";
 import { useAuth } from "@/context/auth";
 import axios from "axios";
 import { withIronSessionSsr } from "iron-session/next";
+import { useRouter } from "next/router";
 import { ironOptions } from "@/config/cookie-config";
 
 type formInput = {
@@ -13,11 +14,11 @@ type formInput = {
 };
 
 const Create: NextPage = () => {
+  const router = useRouter()
   const { authState } = useAuth();
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<formInput>({
     defaultValues: {
@@ -32,6 +33,7 @@ const Create: NextPage = () => {
       ...data,
       author: address,
     });
+    router.push("/blog")
   };
 
   return (
