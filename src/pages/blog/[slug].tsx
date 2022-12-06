@@ -1,10 +1,11 @@
-import { NextPage, GetServerSideProps } from "next";
-import { useAuth } from "@/context/auth";
+import { NextPage } from "next";
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { withIronSessionSsr } from "iron-session/next";
-import { ironOptions } from "@/config/cookie-config";
 import { useRouter } from "next/router";
+
+import axios from "@/config/axios-config";
+import { useAuth } from "@/context/auth";
+import { ironOptions } from "@/config/cookie-config";
 import { truncateAddress } from "@/helpers/index";
 
 interface IPost {

@@ -25,6 +25,7 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.39.4",
+    "react-intersection-observer": "^9.4.1",
     "react-responsive": "^9.0.2",
     "siwe": "^1.1.6",
     "wagmi": "^0.8.1",

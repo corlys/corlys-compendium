@@ -1,17 +1,15 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { firebaseFirestore, firebaseAdminApp } from "@/config/firebase-config";
 import { withIronSessionApiRoute } from "iron-session/next";
-import { ironOptions } from "@/config/cookie-config";
 import {
-  collection,
-  getDocs,
   DocumentData,
   DocumentReference,
   getDoc,
-  orderBy,
-  query,
   doc,
+  FirestoreError,
 } from "firebase/firestore";
+
+import { firebaseFirestore, firebaseAdminApp } from "@/config/firebase-config";
+import { ironOptions } from "@/config/cookie-config";
 import lodash from "lodash";
 
 interface IPost {
@@ -28,6 +26,11 @@ interface FirestorePostResp {
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+    if (req.method !== "GET")
+      return res.status(400).json({
+        error: "wrong method",
+      });
+
     const token = req.session.jwtToken?.token;
 
     const decodedIdToken = await firebaseAdminApp
@@ -35,7 +38,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       .verifyIdToken(token || "");
 
     if (decodedIdToken.uid !== req.session.siwe?.address)
-      return res.status(400).json({
+      return res.status(401).json({
         error: "not logged in",
       });
 
@@ -70,14 +73,27 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       });
     }
   } catch (error: any) {
+    if (error instanceof FirestoreError) {
+      if (error.code === "unauthenticated")
+        return res.status(401).json({
+          message: error.message,
+        });
+
+      if (error.code === "permission-denied")
+        return res.status(403).json({
+          message: error.message,
+        });
+    }
+
     if (error?.code === "auth/argument-error") {
       return res.status(400).json({
         error: "decode jwt error",
       });
     }
-    return res.status(400).json({
+
+    return res.status(500).json({
       error: "something's wrong",
-      message: error,
+      message: error?.message,
     });
   }
 }
