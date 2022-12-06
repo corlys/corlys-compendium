@@ -67,13 +67,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       doc(firebaseFirestore, "posts", stringifyLastId)
     );
 
-    const testDocRef = await getDoc(
-      doc(
-        firebaseFirestore,
-        "posts",
-        "ronge-0xC8a33cc425e04081B83DBcF63de41aeE9254A330"
-      )
-    );
+    // const testDocRef = await getDoc(
+    //   doc(
+    //     firebaseFirestore,
+    //     "posts",
+    //     "ronge-0xC8a33cc425e04081B83DBcF63de41aeE9254A330"
+    //   )
+    // );
 
     const q = query(
       collection(firebaseFirestore, "posts"),

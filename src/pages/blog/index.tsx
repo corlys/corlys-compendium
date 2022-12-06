@@ -40,7 +40,7 @@ const Blog: NextPage<AuthProps> = ({ loggedAddress }) => {
   });
 
   const fetchPosts = async (
-    pageParam: string = "firstPage"
+    pageParam = "firstPage"
   ): Promise<IPostsResponse> => {
     try {
       if (!authState.loggedInAddress) throw new Error("Input not yet ready");
