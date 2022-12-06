@@ -20,3 +20,16 @@ export function stringToSlug(str: string) {
 
   return str;
 }
+
+export function getBaseUrl() {
+  switch (process.env.NODE_ENV) {
+    case "development":
+      return "http://localhost:3000";
+    case "production":
+      return "https://corlys-compendium.vercel.app";
+    case "test":
+      return "impossible";
+    default:
+      return "impossible";
+  }
+}

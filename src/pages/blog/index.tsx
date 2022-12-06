@@ -1,11 +1,16 @@
-import { NextPage, GetServerSideProps } from "next";
-import { useAuth } from "@/context/auth";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import Link from "next/link";
+import { NextPage } from "next";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { withIronSessionSsr } from "iron-session/next";
+import { useInView } from "react-intersection-observer";
+import { useEffect } from "react";
+
+import BlogItemSkeleton from "@/components/Skeletons/BlogItemSkeleton";
+import axios from "@/config/axios-config";
+import { useAuth } from "@/context/auth";
 import { ironOptions } from "@/config/cookie-config";
 import { truncateAddress } from "@/helpers/index";
-import Link from "next/link";
+
 
 interface IPost {
   author: string;
@@ -15,7 +20,8 @@ interface IPost {
 }
 
 interface IPostsResponse {
-  result: IPost[];
+  posts: IPost[];
+  lastId: string;
 }
 
 interface AuthProps {
@@ -24,25 +30,34 @@ interface AuthProps {
 
 const Blog: NextPage<AuthProps> = ({ loggedAddress }) => {
   const { authState } = useAuth();
+  const { ref, inView } = useInView();
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useInfiniteQuery<
+    IPostsResponse,
+    Error
+  >(["posts"], ({ pageParam }) => fetchPosts(pageParam), {
+    getNextPageParam: (lastPage) => lastPage.lastId ?? undefined,
+    enabled: !!authState.loggedInAddress,
+  });
 
-  const { data } = useQuery<IPostsResponse, Error>(
-    ["posts"],
-    () => fetchPosts(),
-    {
-      enabled: !!authState.loggedInAddress,
-    }
-  );
-
-  const fetchPosts = async (): Promise<IPostsResponse> => {
+  const fetchPosts = async (
+    pageParam: string = "firstPage"
+  ): Promise<IPostsResponse> => {
     try {
       if (!authState.loggedInAddress) throw new Error("Input not yet ready");
-      const getPosts = await axios.get<IPostsResponse>("/api/posts");
-      console.log(getPosts.data, "zap");
+      const getPosts = await axios.get<IPostsResponse>(
+        `/api/posts?lastIdParam=${pageParam}`
+      );
       return getPosts.data;
     } catch (error) {
       throw new Error("Network response not ok");
     }
   };
+
+  useEffect(() => {
+    if (inView) {
+      if (!isFetching) fetchNextPage();
+    }
+  }, [inView]);
 
   return (
     <>
@@ -63,14 +78,13 @@ const Blog: NextPage<AuthProps> = ({ loggedAddress }) => {
           </div>
         </div>
         {data &&
-          data.result.map((item, key) => {
-            return (
+          data.pages.map((page) =>
+            page.posts.map((item, key) => (
               <>
                 <Link
                   href={`blog/${item.slug}`}
                   className="flex w-full max-w-[52rem] cursor-pointer flex-col items-start justify-between gap-4 overflow-hidden rounded border-2 border-cyan-900 p-8"
                   key={key}
-
                 >
                   <h1 className="text-2xl md:text-[2rem]">{item.title}</h1>
                   <div>{item.content}</div>
@@ -79,8 +93,12 @@ const Blog: NextPage<AuthProps> = ({ loggedAddress }) => {
                   </div>
                 </Link>
               </>
-            );
-          })}
+            ))
+          )}
+        {
+          isFetchingNextPage && <BlogItemSkeleton />
+        }
+        {hasNextPage ? <div ref={ref}></div> : null}
       </div>
     </>
   );

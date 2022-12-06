@@ -1,11 +1,12 @@
 import { NextPage } from "next";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useAccount } from "wagmi";
+import { useRouter } from "next/router";
+import { withIronSessionSsr } from "iron-session/next";
+
+import axios from "@/config/axios-config"
 import SubmitForm from "@/components/Buttons/SubmitForm";
 import { useAuth } from "@/context/auth";
-import axios from "axios";
-import { withIronSessionSsr } from "iron-session/next";
-import { useRouter } from "next/router";
 import { ironOptions } from "@/config/cookie-config";
 
 type formInput = {

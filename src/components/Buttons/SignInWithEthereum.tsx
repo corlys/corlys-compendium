@@ -2,7 +2,6 @@ import { NextPage } from "next";
 import Button from "@/components/Buttons";
 import { useAuth } from "@/context/auth";
 import { useSignMessage } from "wagmi";
-import axios from "axios"
 
 const SignInWithEthereum: NextPage = () => {
   const { doSiwe, signIn } = useAuth();

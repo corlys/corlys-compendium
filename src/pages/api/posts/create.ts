@@ -1,9 +1,15 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { ironOptions } from "@/config/cookie-config";
 import { withIronSessionApiRoute } from "iron-session/next";
-import { firebaseFirestore } from "@/config/firebase-config";
-import { setDoc, doc, serverTimestamp } from "firebase/firestore";
+import {
+  setDoc,
+  doc,
+  serverTimestamp,
+  FirestoreError,
+} from "firebase/firestore";
+
+import { ironOptions } from "@/config/cookie-config";
 import { stringToSlug } from "@/helpers/index";
+import { firebaseFirestore } from "@/config/firebase-config";
 
 type createReqBody = {
   title: string;
@@ -39,9 +45,27 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       message: "ok",
     });
   } catch (error: any) {
+    if (error instanceof FirestoreError) {
+      if (error.code === "unauthenticated")
+        return res.status(401).json({
+          message: error.message,
+        });
+
+      if (error.code === "permission-denied")
+        return res.status(403).json({
+          message: error.message,
+        });
+    }
+
+    if (error?.code === "auth/argument-error") {
+      return res.status(400).json({
+        error: "decode jwt error",
+      });
+    }
+
     return res.status(500).json({
       error: "something's wrong",
-      message: error?.message
+      message: error?.message,
     });
   }
 }

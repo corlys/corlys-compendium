@@ -37,9 +37,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       .createCustomToken(fields.address);
 
     const { user } = await signInWithCustomToken(firebaseAuth, firebasetoken);
-    req.session.jwtToken = await user.getIdTokenResult();
+    const tokenResult = await user.getIdTokenResult();
+    req.session.jwtToken = tokenResult;
     req.session.customToken = firebasetoken;
-    req.session.expireDate = new Date().getTime() + 30 * 60000; //add 30 minutes
+    req.session.expireDate = new Date(tokenResult.expirationTime).getTime(); //new Date().getTime() + 30 * 60000; //add 30 minutes
     req.session.siwe = fields;
     await req.session.save();
 

@@ -5,11 +5,12 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import axios from "axios";
 import { useAccount, useNetwork } from "wagmi";
 import { SiweMessage } from "siwe";
-import { useIsMounted } from "@/hooks/index";
 import { useRouter } from "next/router";
+
+import axios from "@/config/axios-config";
+import { useIsMounted } from "@/hooks/index";
 
 type AuthState = {
   loggedInAddress: string | null;
