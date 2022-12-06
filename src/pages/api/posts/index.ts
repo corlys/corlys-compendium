@@ -78,7 +78,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const q = query(
       collection(firebaseFirestore, "posts"),
       orderBy("created_at", "desc"),
-      limit(4),
+      limit(5),
       startAfter(lastDocRef.exists() ? lastDocRef : "")
     );
 
