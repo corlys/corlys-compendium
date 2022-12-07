@@ -24,12 +24,14 @@ interface IPost {
   title: string;
   author: string;
   slug: string;
+  spoiler?: string;
 }
 
 interface FirestorePostResp {
   id: string;
   content: string;
   title: string;
+  spoiler?: string;
   author: DocumentReference<DocumentData>;
 }
 

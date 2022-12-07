@@ -11,12 +11,12 @@ import { useAuth } from "@/context/auth";
 import { ironOptions } from "@/config/cookie-config";
 import { truncateAddress } from "@/helpers/index";
 
-
 interface IPost {
   author: string;
   content: string;
   title: string;
   slug: string;
+  spoiler?: string;
 }
 
 interface IPostsResponse {
@@ -31,13 +31,15 @@ interface AuthProps {
 const Blog: NextPage<AuthProps> = ({ loggedAddress }) => {
   const { authState } = useAuth();
   const { ref, inView } = useInView();
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } = useInfiniteQuery<
-    IPostsResponse,
-    Error
-  >(["posts"], ({ pageParam }) => fetchPosts(pageParam), {
-    getNextPageParam: (lastPage) => lastPage.lastId ?? undefined,
-    enabled: !!authState.loggedInAddress,
-  });
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isFetching } =
+    useInfiniteQuery<IPostsResponse, Error>(
+      ["posts"],
+      ({ pageParam }) => fetchPosts(pageParam),
+      {
+        getNextPageParam: (lastPage) => lastPage.lastId ?? undefined,
+        enabled: !!authState.loggedInAddress,
+      }
+    );
 
   const fetchPosts = async (
     pageParam = "firstPage"
@@ -87,7 +89,7 @@ const Blog: NextPage<AuthProps> = ({ loggedAddress }) => {
                   key={key}
                 >
                   <h1 className="text-2xl md:text-[2rem]">{item.title}</h1>
-                  <div>{item.content}</div>
+                  <div>{item.spoiler ? item.spoiler : item.content}</div>
                   <div className="self-end">
                     By {truncateAddress(item.author)}
                   </div>
@@ -95,9 +97,7 @@ const Blog: NextPage<AuthProps> = ({ loggedAddress }) => {
               </>
             ))
           )}
-        {
-          isFetchingNextPage && <BlogItemSkeleton />
-        }
+        {isFetchingNextPage && <BlogItemSkeleton />}
         {hasNextPage ? <div ref={ref}></div> : null}
       </div>
     </>

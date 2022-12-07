@@ -35,6 +35,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       {
         title,
         content,
+        spoiler: content.length >= 20 ? `${content.slice(0, 41)}...` : content,
         author: doc(firebaseFirestore, "users/" + author),
         created_at: serverTimestamp(),
         updated_at: serverTimestamp(),
