@@ -105,6 +105,14 @@ const useAuthController = () => {
       } catch (error) {}
     };
     handleAuth();
+    const intervalId = setInterval(async () => {
+      if (!authState.loggedInAddress) return
+      await axios.get("/api/auth/refresh_token")
+    },45 * 60 * 10 ** 3)
+    return () => {
+      // cleanup
+      clearInterval(intervalId)
+    }
   }, []);
 
   useEffect(() => {
